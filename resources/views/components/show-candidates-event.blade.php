@@ -28,11 +28,11 @@
         <a href="#" onclick="Reload()"
             class="self-center py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-[#FF7322] text-white hover:bg-[#FF6822] focus:outline-none focus:bg-[#FF6822] disabled:opacity-50 disabled:pointer-events-none">Actualiser</a>
         <div>
-            <a href="#" id="acceptAllBtn"
+            <a href="#" id="acceptAllBtn" data-status="accept"
                 class="hidden self-center py-2 px-3 items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-[#FF7322] text-white hover:bg-[#FF6822] focus:outline-none focus:bg-[#FF6822] disabled:opacity-50 disabled:pointer-events-none">Accepter</a>
-            <a href="#" id="rejectAllBtn"
+            <a href="#" id="rejectAllBtn" data-status="decline"
                 class="hidden self-center py-2 px-3 items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-[#FF7322] text-white hover:bg-[#FF6822] focus:outline-none focus:bg-[#FF6822] disabled:opacity-50 disabled:pointer-events-none">Rejeter</a>
-            <a href="#" id="awaitAllBtn"
+            <a href="#" id="awaitAllBtn" data-status="wait"
                 class="hidden self-center py-2 px-3 items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-[#FF7322] text-white hover:bg-[#FF6822] focus:outline-none focus:bg-[#FF6822] disabled:opacity-50 disabled:pointer-events-none">Mettre
                 en attente</a>
 
@@ -115,7 +115,8 @@
                         <tr>
                             <td class="pl-4 w-8">
                                 <input id="checkbox{{ $candidat['id'] }}" type="checkbox"
-                                    class="row-select hidden peer" />
+                                    data-id="{{ $candidat['id'] }}"
+                                    class="row-select hidden peer checked:bg-[#FF7322] checked:border-[#FF7322]" />
                                 <label for="checkbox{{ $candidat['id'] }}"
                                     class="relative flex items-center justify-center p-0.5 peer-checked:before:hidden before:block before:absolute before:w-full before:h-full before:bg-white w-5 h-5 cursor-pointer bg-blue-500 border border-gray-400 rounded overflow-hidden">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-full fill-white"
@@ -162,44 +163,33 @@
                             @endforeach
 
                             <td class="px-6 py-3" id="statusCell">{{ $candidat['status'] }}</td>
-                            <td class="px-6 py-3">
-                                <button id="openModal{{ $candidat['id'] }}"
-                                    data-dropdown-toggle="simpleModal{{ $candidat['id'] }}"
-                                    data-modal-target="simpleModal{{ $candidat['id'] }}"
-                                    class="btnAction relative inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-                                    type="button">
-                                    <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        fill="currentColor" viewBox="0 0 4 15">
-                                        <path
-                                            d="M3.5 1.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6.041a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.959a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
-                                    </svg>
-                                </button>
-
-                                <div id="simpleModal{{ $candidat['id'] }}"
-                                    class="z-40 right-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 absolute modal">
-                                    <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
-                                        <li>
-                                            <a href="#"
-                                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                            <a href="#"
-                                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                                onclick="actionStatus(event, 'accept', '{{ $candidat['id'] }}', '{{ $candidat['odcuser']['first_name'] }}')">Accepter</a>
-                                        </li>
-                                        <li>
-                                            <a href="#"
-                                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                            <a href="#"
-                                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                                onclick="actionStatus(event, 'decline', '{{ $candidat['id'] }}', '{{ $candidat['odcuser']['first_name'] }}')">Refuser</a>
-                                        </li>
-                                        <li>
-                                            <a href="#"
-                                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                            <a href="#"
-                                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                                                onclick="actionStatus(event, 'wait', '{{ $candidat['id'] }}', '{{ $candidat['odcuser']['first_name'] }}', '{{ $candidat['odcuser']['last_name'] }}')">Attendre</a>
-                                        </li>
-                                    </ul>
+                            <td class="px-6 py-3 flex space-x-3">
+                                <svg data-tooltip-target="tooltip-accept{{ $candidat['id'] }}" class="text-white hover:text-[#FF7322] cursor-pointer" onclick="actionStatus(event, 'accept', '{{ $candidat['id'] }}', '{{ $candidat['odcuser']['first_name'] }}')" class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
+                                </svg>
+                                <div id="tooltip-accept{{ $candidat['id'] }}" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                    Accepter
+                                    <div class="tooltip-arrow" data-popper-arrow></div>
+                                </div>
+                                <svg data-tooltip-target="tooltip-await{{ $candidat['id'] }}" class="text-white hover:text-[#FF7322] cursor-pointer" onclick="actionStatus(event, 'wait', '{{ $candidat['id'] }}', '{{ $candidat['odcuser']['first_name'] }}', '{{ $candidat['odcuser']['last_name'] }}')" class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                                <div id="tooltip-await{{ $candidat['id'] }}" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                    Mettre en attente
+                                    <div class="tooltip-arrow" data-popper-arrow></div>
+                                </div>
+                                <svg data-tooltip-target="tooltip-reject{{ $candidat['id'] }}" class="text-white hover:text-[#FF7322] cursor-pointer" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 2048 2048">
+                                    <path fill="currentColor" d="m1115 1024l690 691l-90 90l-691-690l-691 690l-90-90l690-691l-690-691l90-90l691 690l691-690l90 90z" />
+                                </svg>
+                                <div id="tooltip-reject{{ $candidat['id'] }}" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                    Rejeter
+                                    <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
                             </td>
                         </tr>
@@ -235,7 +225,7 @@
             <div class="relative p-4 w-full max-w-md max-h-full">
                 <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
                     <button type="button"
-                        class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                        class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-[#FF7322] hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                         data-modal-hide="popup-accept">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 14 14">
@@ -245,7 +235,7 @@
                         <span class="sr-only">Close</span>
                     </button>
                     <div class="p-4 md:p-5 text-center">
-                        <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true"
+                        <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-[#FF7322]" aria-hidden="true"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />

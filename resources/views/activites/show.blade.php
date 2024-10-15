@@ -105,49 +105,108 @@
 
     @section('script')
         <script>
-            const selectAllCheckbox = document.getElementById('select-all');
-            const rowCheckboxes = document.querySelectorAll('.row-select');
-            const selectedCountDisplay = document.createElement('span');
+            let selectAllCheckbox = document.getElementById('select-all');
+            let selectedCandidats = new Set(); // Pour stocker les IDs sélectionnés
+            let rowCheckboxes = document.querySelectorAll('.row-select');
+            let selectedCountDisplay = document.createElement('span');
             selectedCountDisplay.className = "text-gray-200 ms-5";
             selectedCountDisplay.id = "selected-count";
 
             $(document).ready(function() {
-                // Événement pour le checkbox "Sélectionner tout"
+                // Fonction pour mettre à jour l'affichage des boutons et le compte des sélections
+                function updateSelectionDisplay() {
+                    const selectedCount = selectedCandidats.size; // Utiliser la taille du Set
+                    selectedCountDisplay.textContent = selectedCount ? `${selectedCount} ligne(s) sélectionnée(s)` : '';
 
+                    // Afficher ou cacher les boutons
+                    if (selectedCount > 0) {
+                        $('#acceptAllBtn').removeClass('hidden');
+                        $('#rejectAllBtn').removeClass('hidden');
+                        $('#awaitAllBtn').removeClass('hidden');
+                    } else {
+                        $('#acceptAllBtn').addClass('hidden');
+                        $('#rejectAllBtn').addClass('hidden');
+                        $('#awaitAllBtn').addClass('hidden');
+                    }
+
+                    // Mettre à jour l'affichage du compteur
+                    $('#candidatTable_info').append(selectedCountDisplay);
+                }
+
+                // Événement pour le checkbox "Sélectionner tout"
                 selectAllCheckbox.addEventListener('change', function() {
                     rowCheckboxes.forEach(checkbox => {
                         checkbox.checked = selectAllCheckbox.checked;
+                        const id = checkbox.dataset.id; // Supposant que chaque checkbox a un data-id
+                        if (selectAllCheckbox.checked) {
+                            selectedCandidats.add(id); // Ajouter à l'ensemble si sélectionné
+                        } else {
+                            selectedCandidats.delete(id); // Retirer de l'ensemble si désélectionné
+                        }
                     });
-                    $('#acceptAllBtn').removeClass('hidden')
-                    $('#rejectAllBtn').removeClass('hidden')
-                    $('#awaitAllBtn').removeClass('hidden')
-                    selectedCountDisplay.textContent = "Toutes les lignes sont sélectionnées";
-                    $('#candidatTable_info').append(selectedCountDisplay);
+                    updateSelectionDisplay(); // Mettre à jour l'affichage après changement
                 });
 
                 // Événement pour les checkboxes de chaque ligne
                 rowCheckboxes.forEach(checkbox => {
                     checkbox.addEventListener('change', function() {
-                        $('#candidatTable_info').append(selectedCountDisplay);
-                        if (!checkbox.checked) {
-                            selectAllCheckbox.checked = false; // Désélectionner "Sélectionner tout"
+                        const id = checkbox.dataset.id; // Supposant que chaque checkbox a un data-id
+                        if (checkbox.checked) {
+                            selectedCandidats.add(id); // Ajouter à l'ensemble si coché
+                        } else {
+                            selectedCandidats.delete(id); // Retirer de l'ensemble si décoché
                         }
-                        if (Array.from(rowCheckboxes).every(cb => cb.checked)) {
-                            selectAllCheckbox.checked =
-                                true; // Cocher "Sélectionner tout" si tous sont cochés
-                        }
-                        $('#acceptAllBtn').removeClass('hidden')
-                        $('#rejectAllBtn').removeClass('hidden')
-                        $('#awaitAllBtn').removeClass('hidden')
-
-                        const selectedCount = Array.from(rowCheckboxes).filter(checkbox => checkbox
-                            .checked).length;
-                        selectedCountDisplay.textContent = `${selectedCount} ligne(s) sélectionnée(s)`;
+                        // Vérifier si "Sélectionner tout" doit être cochée ou décochée
+                        selectAllCheckbox.checked = Array.from(rowCheckboxes).every(cb => cb.checked);
+                        updateSelectionDisplay(); // Mettre à jour l'affichage après changement
                     });
+                });
+
+                // Gérer la mise à jour du statut des candidats sélectionnés
+                $('#acceptAllBtn, #rejectAllBtn, #awaitAllBtn').on('click', function() {
+                    const action = $(this).data('status');; // Récupérer l'action (accept, reject, wait)
+                    const candidats = Array.from(selectedCandidats); // Convertir le Set en tableau
+                    //tr = $(event.target.closest('tr'));
+                    //let statusCell = tr.find('#statusCell');
+
+                    if (candidats.length) {
+                        $.ajax({
+                            url: `/candidat/${action}`,
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                ids: candidats
+                            }),
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            },
+                            success: function(data) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Succès',
+                                    text: data.message,
+                                    timer: 2000,
+                                    timerProgressBar: true,
+                                });
+                                $(statusCell[0]).text(action);
+                                // Optionnel : Réinitialiser la sélection après succès
+                                selectedCandidats.clear(); // Réinitialiser le Set
+                                updateSelectionDisplay(); // Mettre à jour l'affichage
+                            },
+                            error: function(xhr) {
+                                const errorMessage = xhr.responseJSON?.error ||
+                                    'Une erreur est survenue';
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erreur',
+                                    text: errorMessage,
+                                });
+                            }
+                        });
+                    }
                 });
             });
         </script>
-
 
         {{-- Script for presence data table --}}
 
