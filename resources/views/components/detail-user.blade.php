@@ -2,7 +2,7 @@
 <style>
     .custom-swal {
         width: 100%;
-        background-color: #111827 ;
+        background-color: #111827;
         color: white;
     }
 </style>
@@ -20,6 +20,7 @@
                     class="text-4xl mb-2 font-extrabold leading-none tracking-tight text-gray-700 md:text-5xl lg:text-5xl dark:text-white">
                     {{ $odcuser->first_name }} {{ $odcuser->last_name }}</h2>
                 <p class="text-sm text-gray-400">{{ $odcuser->email }}</p>
+                <a href="#" onclick="showUserCV(event, '{{ $odcuser->user_cv }}', '{{$odcuser->first_name}}', '{{$odcuser->last_name}}')" class="text-sm hover:underline text-gray-400">Voir le CV</a>
             </div>
 
             <div class=" flex justify-between gap-5 text-center">
@@ -90,7 +91,7 @@
         @endforeach
 
         <div class=" text-left">
-            <p> LinkedIn : <span><a href="{{ $odcuser->linkedin }}">{{ $odcuser->linkedin }}</a></span></p>
+            <p> LinkedIn : <span><a class="hover:underline" href="{{ $odcuser->linkedin }}">{{ $odcuser->linkedin }}</a></span></p>
         </div>
 
         <div class=" text-left">
@@ -150,21 +151,3 @@
 </div>
 
 </section>
-
-
-@section('script')
-<script>
-    $(document).ready(function() {
-        $('#participationsTable').css('width', '100%');
-        $('.dt-container').addClass('text-lg text-gray-800 dark:text-gray-400 leading-tight')
-        $('.dt-buttons').addClass('mt-4')
-        $('.dt-buttons buttons').addClass('cursor-pointer mt-5 bg-slate-600 p-2 rounded-sm font-bold')
-
-        $("#dt-length-0").addClass('text-gray-700 dark:text-gray-200 w-24 bg-white');
-        $("label[for='dt-length-0']").addClass('text-gray-700 dark:text-gray-200').text(
-            ' Records par page');
-        $("label[for='dt-search-0']").addClass('text-gray-700 dark:text-gray-200');
-        $('.dt-input').addClass('text-gray-700 dark:text-gray-200');
-    });
-</script>
-@endsection

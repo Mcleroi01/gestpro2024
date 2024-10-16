@@ -115,7 +115,7 @@
                 </thead>
                 <tbody>
                     @foreach ($candidatsData as $candidat)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 hover:cursor-pointer">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 hover:cursor-pointer hover:underline">
                             <td class="w-4 p-4">
                                 <div class="flex items-center">
                                     <input id="checkbox{{ $candidat['id'] }}" data-id="{{ $candidat['id'] }}" type="checkbox" class="row-select w-4 h-4 hover:cursor-pointer text-[#FF7322] bg-gray-100 border-gray-300 rounded focus:ring-[#FF7322] dark:focus:ring-[#FF7322] dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
