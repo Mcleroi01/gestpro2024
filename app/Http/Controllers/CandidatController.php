@@ -94,8 +94,6 @@ class CandidatController extends Controller
         }
     }
 
-    public function create() {}
-
     public function generateExcel($id_event)
     {
         // Get the activite and its dates
@@ -228,7 +226,7 @@ class CandidatController extends Controller
                     ->getStyle('A1:' . $spreadsheet->getActiveSheet()->getHighestColumn() . $spreadsheet->getActiveSheet()->getHighestRow())
                     ->getBorders()
                     ->getAllBorders()
-                    ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                    ->setBorderStyle(Border::BORDER_THIN);
 
                 $spreadsheet->getActiveSheet()->getPageMargins()->setTop(0.8);
                 $spreadsheet->getActiveSheet()->getPageMargins()->setRight(0.1);
@@ -300,7 +298,7 @@ class CandidatController extends Controller
                         ->setCellValue("E$cell_key", $phone)
                         ->getCell("E$cell_key")
                         ->setValueExplicit($phone, DataType::TYPE_STRING)
-                        ->getStyle("E$cell_key")
+                        ->getStyle()
                         ->getAlignment()
                         ->setHorizontal(cellAlignment::HORIZONTAL_RIGHT);
 
@@ -403,7 +401,6 @@ class CandidatController extends Controller
         return response()->json(['message' => count($candidats) . ' candidat(s) mis à jour avec succès !'], 200);
     }
 
-
     public function store(Request $request)
     {
         FacadesLog::info('storeCandidats called');
@@ -430,27 +427,5 @@ class CandidatController extends Controller
         } else {
             return response()->json(['success' => false, 'message' => 'User or Event not found'], 303);
         }
-    }
-
-
-    public function show(Candidat $candidat)
-    {
-        return view('candidats.show', compact('candidat'));
-    }
-
-    public function edit(Candidat $candidat)
-    {
-        //
-    }
-
-
-    public function update(UpdateCandidatRequest $request, Candidat $candidat)
-    {
-        //
-    }
-
-    public function destroy(Candidat $candidat)
-    {
-        //
     }
 }
