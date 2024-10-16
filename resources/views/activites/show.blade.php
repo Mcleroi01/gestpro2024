@@ -749,7 +749,6 @@
                     icon: "success",
                     title: `${count} candidats stockés avec succès`
                 });
-                location.reload()
             }
 
             function showErrorToast(message) {
