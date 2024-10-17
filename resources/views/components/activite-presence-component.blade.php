@@ -1,16 +1,19 @@
-@props(['dates', 'data', 'presences', 'countdate', 'fullDates', 'activite', 'test', 'candidats'])
+@props(['dates', 'data', 'fullDates'])
 
 
 <div class="py-6 relative overflow-x-auto">
     <table id="candidatpresence" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-                <th scope="col" class="bg-gray-700 px-6 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                <th scope="col"
+                    class="bg-gray-700 px-6 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                     Id
                 </th>
-                <th scope="col" class=" bg-gray-700 px-6 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                <th scope="col"
+                    class=" bg-gray-700 px-6 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                     FirstName</th>
-                <th scope="col" class="bg-gray-700 px-6 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                <th scope="col"
+                    class="bg-gray-700 px-6 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                     Lastname
                 </th>
                 @foreach ($dates as $item)

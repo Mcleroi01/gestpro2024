@@ -149,136 +149,117 @@ class ActiviteController extends Controller
 
     public function show(Activite $activite)
     {
-
-        // Trouver l'Activite correspondant et récupérer le champ '_id'
         $id = $activite->id;
         $activite_Id = $activite->_id;
 
-        $odcusers = Odcuser::all(['id', '_id']);
-        //recuperer les presents  et la date
-        $presences = Presence::orderBy('id')->get();
-        //recuperer les presents  et la date
-        $presences = Presence::orderBy('id')->get();
-        $test = Presence::all();
-
         try {
-            $candidats = Candidat::where('activite_id', $id)->with(['odcuser', 'candidat_attribute'])->get();
+            // Récupérer les utilisateurs et présences
+            $odcusers = Odcuser::all(['id', '_id']);
+            $presences = Presence::all();
 
-            $candidatsData = [];
-            $labels = [];
-            if (count($candidats) > 0) {
-                $candidatsData = [];
-                $labels = [];
-                foreach ($candidats as $candidat) {
-                    $candidatArray = $candidat->toArray();
-                    if ($candidat->candidat_attribute) {
-                        foreach ($candidat->candidat_attribute as $attribute) {
-                            $candidatArray[$attribute->label] = $attribute->value;
-                            if (!in_array($attribute->label, $labels)) {
-                                $labels[] = $attribute->label;
-                            }
-                        }
-                    }
-                    $candidatsData[] = $candidatArray;
-                }
-            } else {
-                $candidatsData = null;
-                $labels = null;
-            }
+            // Candidats et participants
+            $candidats = Candidat::where('activite_id', $id)
+                ->with(['odcuser', 'candidat_attribute'])
+                ->get();
+
+            $candidatsDataResult = $this->prepareCandidatsData($candidats);
+            $candidatsData = $candidatsDataResult['data'];
+            $labels = $candidatsDataResult['labels']; // Récupération des labels
+
+            $participants = $candidats->where('status', 'accept')->values();
+            $participantsDataResult = $this->prepareCandidatsData($participants);
+            $participantsData = $participantsDataResult['data'];
+            $etiquettes = $participantsDataResult['labels']; // Étiquettes pour participants
+
+            // Récupérer les dates
+            $dateDebut = Carbon::parse($activite->start_date);
+            $dateFin = Carbon::parse($activite->end_date);
+            list($dates, $fullDates) = $this->getDatesRange($dateDebut, $dateFin);
+
+            // Récupérer les présences associées aux candidats
+            $data = $this->getCandidatsPresenceData($participants);
+
+            // Données pour le graphique
+            $datachart = $this->getCandidatsChartData($id);
+
+            $modelMail = ModelMail::all();
+
+            return view('activites.show', compact(
+                'participantsData', 'datachart', 'candidatsData', 'labels',
+                'data', 'activite', 'id', 'odcusers', 'fullDates', 'dates',
+                'presences', 'modelMail'
+            ));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
         }
+    }
 
-        // dd($candidatsData[0]['odcuser']['first_name']);
+    private function prepareCandidatsData($candidats)
+    {
+        $data = [];
+        $labels = [];
 
-        $participants = Candidat::where('activite_id', $id)->where('status', 'accept')->select('id', 'odcuser_id', 'activite_id', 'status')->with(['odcuser', 'candidat_attribute'])->get();
-
-        $etiquettes = [];
-        $participantsData = [];
-
-        if (count($participants) > 0) {
-            foreach ($participants as $participant) {
-                $participantArray = $participant->toArray();
-
-                if ($participant->candidat_attribute) {
-                    foreach ($participant->candidat_attribute as $attribute) {
-                        $participantArray[$attribute->label] = $attribute->value;
-                        if (!in_array($attribute->label, $etiquettes)) {
-                            $etiquettes[] = $attribute->label;
-                        }
-                    }
+        foreach ($candidats as $candidat) {
+            $candidatArray = $candidat->toArray();
+            foreach ($candidat->candidat_attribute as $attribute) {
+                $candidatArray[$attribute->label] = $attribute->value;
+                if (!in_array($attribute->label, $labels)) {
+                    $labels[] = $attribute->label;
                 }
-                $participantsData[] = $participantArray;
             }
-        } else {
-            $participantsData = null;
-            $etiquettes = null;
+            $data[] = $candidatArray;
         }
-        //recuperer les presents  et la date
 
-        $presences = Presence::orderBy('id')->get();
-        $activite = Activite::findOrFail($id);
-        $dateDebut = Carbon::parse($activite->start_date);
-        $dateFin = Carbon::parse($activite->end_date);
+        return ['data' => $data, 'labels' => $labels];
+    }
 
+    private function getDatesRange($start, $end)
+    {
         $dates = [];
         $fullDates = [];
-        for ($date = $dateDebut; $date->lte($dateFin); $date->addDay()) {
+        for ($date = $start; $date->lte($end); $date->addDay()) {
             if (!$date->isWeekend()) {
                 $dates[] = $date->format('d-m');
                 $fullDates[] = $date->format('Y-m-d');
             }
         }
-        // dd($dates);
-        $countdate = count($dates);
+        return [$dates, $fullDates];
+    }
 
-        $candidats_on_activity = Candidat::where('activite_id', $id)->where('status', 'accept')->with('odcuser')->get();
+    private function getCandidatsPresenceData($participants)
+    {
         $data = [];
-        $pres = Presence::all()->pluck('candidat_id');
-        foreach ($candidats_on_activity as $candidat) {
-            $pres = Presence::where('candidat_id', $candidat->id)->get();
-            try {
-                $date = $pres->toArray();
-                $presence_date = [];
-                foreach ($pres->toArray() as $key => $date) {
-                    $presence_date[] = date('Y-m-d', strtotime($date['date']));
-                }
-                $candidatsPresence = $candidat->toArray();
-                $candidatsPresence['date'] = $presence_date;
-                $candidatsPresence['candidat_id'] = $candidat->id;
-                $candidatsPresence['odcuser'] = $candidat->odcuser;
 
-                $data[] = $candidatsPresence;
-            } catch (\Throwable $th) {
-                //echo $th->getMessage();
-            }
+        foreach ($participants as $participant) {
+            $pres = Presence::where('candidat_id', $participant->id)->get();
+            $presenceDates = $pres->pluck('date')->map(fn($date) => date('Y-m-d', strtotime($date)))->toArray();
+
+            $candidatPresence = $participant->toArray();
+            $candidatPresence['date'] = $presenceDates;
+            $candidatPresence['odcuser'] = $participant->odcuser;
+
+            $data[] = $candidatPresence;
         }
 
-        $id = $activite->id;
+        return $data;
+    }
 
-
-
-
-
-
-
-        $datachart = DB::table('candidats')
+    private function getCandidatsChartData($activiteId)
+    {
+        return DB::table('candidats')
             ->join('odcusers', 'candidats.odcuser_id', '=', 'odcusers.id')
             ->join('activites', 'candidats.activite_id', '=', 'activites.id')
-            ->where('candidats.activite_id', $id) // Utilisez l'ID de l'activité spécifique
+            ->where('candidats.activite_id', $activiteId)
             ->selectRaw("
-        activites.title as activite,
-        SUM(CASE WHEN odcusers.gender = 'female' THEN 1 ELSE 0 END) as total_filles,
-        SUM(CASE WHEN odcusers.gender = 'male' THEN 1 ELSE 0 END) as total_garcons,
-        COUNT(*) as total_candidats
-    ")
+                activites.title as activite,
+                SUM(CASE WHEN odcusers.gender = 'female' THEN 1 ELSE 0 END) as total_filles,
+                SUM(CASE WHEN odcusers.gender = 'male' THEN 1 ELSE 0 END) as total_garcons,
+                COUNT(*) as total_candidats
+            ")
             ->groupBy('activites.title')
             ->get();
-
-            $modelMail = ModelMail::all();
-
-        return view('activites.show', compact('participantsData', 'datachart', 'candidatsData', 'labels', 'data', 'activite', 'id', 'candidats', 'activite_Id', 'odcusers', 'fullDates', 'dates', 'countdate', 'presences','modelMail'));
     }
+
 
 
     public function edit(Activite $activite)

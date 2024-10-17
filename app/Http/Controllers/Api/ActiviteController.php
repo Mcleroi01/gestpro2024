@@ -13,27 +13,17 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ActiviteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $activite = Activite::all();
         return response()->json($activite);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $url = env('API_URL');
         foreach ($request->input('content') as $content) {
             if ($content['type'] === 'paragraph') {
-
-
-
-
                 $activite = [
                     "title" => $request->title,
                     "categories" => $request->categories,
@@ -123,40 +113,13 @@ class ActiviteController extends Controller
                 }
             }
         }
-
-        // Return the created event
-
-
     }
 
-
-
-
-
-
-    /**
-     * Display the specified resource.
-     */
     public function show(Activite $activite)
     {
         return response()->json($activite);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Activite $activite)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Activite $activite)
-    {
-        //
-    }
     public function getActiviteRecent()
     {
 
@@ -180,17 +143,12 @@ class ActiviteController extends Controller
 
     public function get(Request $request)
     {
-
         try {
-
-
             $query = Activite::query()->latest();
 
             if ($request->has('start_date') && $request->has('end_date')) {
                 $query->whereBetween('start_date', [$request->start_date, $request->end_date]);
             }
-
-
             return DataTables::eloquent($query)
                 ->editColumn('message', function ($activite) {
                     $today = Carbon::today();

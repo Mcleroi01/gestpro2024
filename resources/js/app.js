@@ -4,6 +4,9 @@ import Alpine from 'alpinejs';
 import DataTable from 'datatables.net-dt';
 import Chart from "chart.js/auto";
 
+import Swal from 'sweetalert2';
+window.Swal = Swal;
+
 
 window.Alpine = Alpine;
 

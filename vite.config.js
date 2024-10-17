@@ -16,11 +16,14 @@ export default defineConfig({
             refresh: true,
         }),
     ],
-    server:{
-        host:"10.252.252.27",
-        cors:{
-            origin:'*',
-            credentials:true
-        }
-    }
+
+    // server:{
+    //     host: '10.252.252.10',
+    //     cors:{
+    //         origin:'*',
+    //         credentials: true,
+    //     }
+    // }
+
+
 });

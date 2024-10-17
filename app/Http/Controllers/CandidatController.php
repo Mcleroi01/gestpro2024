@@ -31,6 +31,11 @@ class CandidatController extends Controller
 {
     public function index() {}
 
+    public function getCandidats($id_event)
+    {
+        $candidats = Candidat::where('event_id', $id_event)->where('status', '!=', 'accept')->latest()->get();
+        return response()->json($candidats);
+    }
 
     public function getParticipants(Request $request, $id)
     {
@@ -88,8 +93,6 @@ class CandidatController extends Controller
             return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
         }
     }
-
-    public function create() {}
 
     public function generateExcel($id_event)
     {
@@ -223,7 +226,7 @@ class CandidatController extends Controller
                     ->getStyle('A1:' . $spreadsheet->getActiveSheet()->getHighestColumn() . $spreadsheet->getActiveSheet()->getHighestRow())
                     ->getBorders()
                     ->getAllBorders()
-                    ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                    ->setBorderStyle(Border::BORDER_THIN);
 
                 $spreadsheet->getActiveSheet()->getPageMargins()->setTop(0.8);
                 $spreadsheet->getActiveSheet()->getPageMargins()->setRight(0.1);
@@ -295,7 +298,7 @@ class CandidatController extends Controller
                         ->setCellValue("E$cell_key", $phone)
                         ->getCell("E$cell_key")
                         ->setValueExplicit($phone, DataType::TYPE_STRING)
-                        ->getStyle("E$cell_key")
+                        ->getStyle()
                         ->getAlignment()
                         ->setHorizontal(cellAlignment::HORIZONTAL_RIGHT);
 
@@ -372,40 +375,30 @@ class CandidatController extends Controller
     {
         // Validate the status
         if (!in_array($status, ['accept', 'decline', 'wait'])) {
-            // Return an error response if the status is invalid
-            return response()->json(['error' => 'Invalid status'], 300);
+            return response()->json(['error' => 'Invalid status'], 400);
         }
 
-        // Get the ID from the request
-        $candidat = Candidat::find($request->input('id'));
+        // Get the IDs from the request
+        $ids = $request->input('ids');
 
-        if (!$candidat) {
-            // Return an error response if the candidat is not found
-            return response()->json(['error' => 'Candidat not found'], 404);
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['error' => 'Désolé, une erreur s\'est produite lors de la mise à jour des candidats sélectionnés'], 400);
         }
-        // Perform the necessary action based on the status
-        switch ($status) {
-            case 'accept':
-                $candidat->status = 'accept';
-                $candidat->save();
-                return response()->json(['message' => 'Candidat validé avec succès !'], 200);
-                break;
 
-            case 'decline':
-                $candidat->status = 'decline';
-                $candidat->save();
-                return response()->json(['message' => 'Le candidat a été rejeté avec succès !'], 200);
-                break;
+        // Find the candidats
+        $candidats = Candidat::whereIn('id', $ids)->get();
 
-            case 'wait':
-                $candidat->status = 'wait';
-                $candidat->save();
-                return response()->json(['message' => 'Le candidat a été mis en attente avec succès !'], 200);
-                break;
-            default:
-                return response()->json(['Erreur lors de la mise a jour du statut!']);
-                break;
+        if ($candidats->isEmpty()) {
+            return response()->json(['error' => 'Aucun candidat n\' a été trouvé'], 404);
         }
+
+        // Update the status for each candidat
+        foreach ($candidats as $candidat) {
+            $candidat->status = $status;
+            $candidat->save();
+        }
+
+        return response()->json(['message' => count($candidats) . ' candidat(s) mis à jour avec succès !'], 200);
     }
 
     public function store(Request $request)
@@ -434,27 +427,5 @@ class CandidatController extends Controller
         } else {
             return response()->json(['success' => false, 'message' => 'User or Event not found'], 303);
         }
-    }
-
-
-    public function show(Candidat $candidat)
-    {
-        return view('candidats.show', compact('candidat'));
-    }
-
-    public function edit(Candidat $candidat)
-    {
-        //
-    }
-
-
-    public function update(UpdateCandidatRequest $request, Candidat $candidat)
-    {
-        //
-    }
-
-    public function destroy(Candidat $candidat)
-    {
-        //
     }
 }

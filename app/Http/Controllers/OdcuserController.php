@@ -95,10 +95,10 @@ class OdcuserController extends Controller
             FROM activites act
             JOIN candidats c ON act.id = c.activite_id
             JOIN categories cat ON act.categorie_id = cat.id
-            WHERE c.odcuser_id = ? AND (c.status = ? OR c.status = ?)
+            WHERE c.odcuser_id = ? AND (c.status = ?)
             ORDER BY c.createdAt
             LIMIT 3',
-            [$userId, 'accept', 1]
+            [$userId, 'accept']
         );
 
 
@@ -108,10 +108,10 @@ class OdcuserController extends Controller
             FROM activites act
             JOIN candidats c ON act.id = c.activite_id
             JOIN categories cat ON act.categorie_id = cat.id
-            WHERE c.odcuser_id = ? AND (c.status = ? OR c.status = ?)
+            WHERE c.odcuser_id = ? AND (c.status = ?)
             ORDER BY c.createdAt
             LIMIT 3',
-            [$userId, 'accept', 1]
+            [$userId, 'accept']
         );
 
         $activitesC = DB::select(
@@ -167,7 +167,6 @@ class OdcuserController extends Controller
             'phone' => $request->phone,
             'gender' => $request->gender,
             'bithdate' => $request->bithdate,
-            'phone' => $request->phone,
             'linkedin' => $request->linkedin,
             'profession' => $request->profession,
             'company' => $request->company,
