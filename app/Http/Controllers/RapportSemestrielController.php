@@ -85,7 +85,7 @@ class RapportSemestrielController extends Controller
 
         //     ])->distinct()
         //     ->get();
-        $candidats = DB::select("select * from semestre_report_views  where datepresence between '{$startDate}' and '{$endDate}'");
+        $candidats = DB::select("select * from semestre_report_views  where startYear between '{$startDate}' and '{$endDate}'");
         // dd($candidats);
         //$queries = DB::getQueryLog();
         //dd($queries);
